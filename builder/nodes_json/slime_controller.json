@@ -1,0 +1,245 @@
+{
+  "serializableRectTransform": {
+    "position": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "localPosition": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "anchorMin": {
+      "x": 0.0,
+      "y": 1.0
+    },
+    "anchorMax": {
+      "x": 0.0,
+      "y": 1.0
+    },
+    "sizeDelta": {
+      "x": 250.0,
+      "y": 152.60000610351563
+    },
+    "scale": {
+      "x": 1.0,
+      "y": 1.0,
+      "z": 1.0
+    }
+  },
+  "id": "SlimeController",
+  "sID": "{sID}",
+  "enableSelfConnection": false,
+  "enableDrag": true,
+  "enableHover": false,
+  "enableSelect": true,
+  "disableClick": false,
+  "modifier": "",
+  "defaultColor": {
+    "r": 0.21960784494876862,
+    "g": 0.21960784494876862,
+    "b": 0.21960784494876862,
+    "a": 1.0
+  },
+  "outlineSelectedColor": {
+    "r": 1.0,
+    "g": 0.5799999833106995,
+    "b": 0.03999999910593033,
+    "a": 1.0
+  },
+  "outlineHoverColor": {
+    "r": 1.0,
+    "g": 0.8100000023841858,
+    "b": 0.30000001192092898,
+    "a": 1.0
+  },
+  "serializablePorts": [
+    {
+      "serializableRectTransform": {
+        "position": {
+          "x": 757.96728515625,
+          "y": 818.6995239257813,
+          "z": 0.0
+        },
+        "localPosition": {
+          "x": -105.0,
+          "y": -66.19999694824219,
+          "z": 0.0
+        },
+        "anchorMin": {
+          "x": 0.0,
+          "y": 1.0
+        },
+        "anchorMax": {
+          "x": 0.0,
+          "y": 1.0
+        },
+        "sizeDelta": {
+          "x": 40.0,
+          "y": 40.0
+        },
+        "scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        }
+      },
+      "id": "Bool1",
+      "sID": "{jump}",
+      "polarity": 0,
+      "maxConnections": 1,
+      "iconColorDefault": {
+        "r": 0.5921568870544434,
+        "g": 0.0,
+        "b": 0.8666666746139526,
+        "a": 1.0
+      },
+      "iconColorHover": {
+        "r": 0.7098039388656616,
+        "g": 0.2862745225429535,
+        "b": 0.9058823585510254,
+        "a": 1.0
+      },
+      "iconColorSelected": {
+        "r": 0.5921568870544434,
+        "g": 0.0,
+        "b": 0.8666666746139526,
+        "a": 1.0
+      },
+      "iconColorConnected": {
+        "r": 0.9800000190734863,
+        "g": 0.9399999976158142,
+        "b": 0.8399999737739563,
+        "a": 1.0
+      },
+      "enableDrag": true,
+      "enableHover": true,
+      "disableClick": false,
+      "controlPointSerializableRectTransform": {
+        "position": {
+          "x": 677.6802368164063,
+          "y": 818.6995239257813,
+          "z": 0.0
+        },
+        "localPosition": {
+          "x": -55.79999923706055,
+          "y": -0.000008742277714191005,
+          "z": 0.0
+        },
+        "anchorMin": {
+          "x": 0.5,
+          "y": 0.5
+        },
+        "anchorMax": {
+          "x": 0.5,
+          "y": 0.5
+        },
+        "sizeDelta": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "scale": {
+          "x": 2.2121801376342775,
+          "y": 2.2121801376342775,
+          "z": 2.2121801376342775
+        }
+      },
+      "nodeInstanceID": -13860,
+      "nodeSID": "{sID}"
+    },
+    {
+      "serializableRectTransform": {
+        "position": {
+          "x": 757.96728515625,
+          "y": 883.1305541992188,
+          "z": 0.0
+        },
+        "localPosition": {
+          "x": -105.0,
+          "y": -21.420000076293947,
+          "z": 0.0
+        },
+        "anchorMin": {
+          "x": 0.0,
+          "y": 1.0
+        },
+        "anchorMax": {
+          "x": 0.0,
+          "y": 1.0
+        },
+        "sizeDelta": {
+          "x": 40.0,
+          "y": 40.0
+        },
+        "scale": {
+          "x": 1.0,
+          "y": 1.0,
+          "z": 1.0
+        }
+      },
+      "id": "Vector31",
+      "sID": "{move}",
+      "polarity": 0,
+      "maxConnections": 1,
+      "iconColorDefault": {
+        "r": 0.8666667342185974,
+        "g": 0.43137258291244509,
+        "b": 0.0,
+        "a": 1.0
+      },
+      "iconColorHover": {
+        "r": 0.9058824181556702,
+        "g": 0.5529412031173706,
+        "b": 0.20000001788139344,
+        "a": 1.0
+      },
+      "iconColorSelected": {
+        "r": 0.8666667342185974,
+        "g": 0.43137258291244509,
+        "b": 0.0,
+        "a": 1.0
+      },
+      "iconColorConnected": {
+        "r": 1.0,
+        "g": 1.0,
+        "b": 1.0,
+        "a": 1.0
+      },
+      "enableDrag": true,
+      "enableHover": true,
+      "disableClick": false,
+      "controlPointSerializableRectTransform": {
+        "position": {
+          "x": 677.6802368164063,
+          "y": 883.1305541992188,
+          "z": 0.0
+        },
+        "localPosition": {
+          "x": -55.79999923706055,
+          "y": -0.000008742277714191005,
+          "z": 0.0
+        },
+        "anchorMin": {
+          "x": 0.5,
+          "y": 0.5
+        },
+        "anchorMax": {
+          "x": 0.5,
+          "y": 0.5
+        },
+        "sizeDelta": {
+          "x": 0.0,
+          "y": 0.0
+        },
+        "scale": {
+          "x": 2.2121801376342775,
+          "y": 2.2121801376342775,
+          "z": 2.2121801376342775
+        }
+      },
+      "nodeInstanceID": -13860,
+      "nodeSID": "{sID}"
+    }
+  ]
+}

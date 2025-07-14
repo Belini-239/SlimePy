@@ -1,0 +1,85 @@
+{
+  "id": "SomeStrangeId",
+  "sID": "{sID}",
+  "port0InstanceID": 0,
+  "port1InstanceID": 0,
+  "port0SID": "{fromID}",
+  "port1SID": "{toID}",
+  "selectedColor": {
+    "r": 1.0,
+    "g": 0.5799999833106995,
+    "b": 0.03999999910593033,
+    "a": 1.0
+  },
+  "hoverColor": {
+    "r": 1.0,
+    "g": 0.8100000023841858,
+    "b": 0.30000001192092898,
+    "a": 1.0
+  },
+  "defaultColor": {
+    "r": 0.9800000190734863,
+    "g": 0.9399999976158142,
+    "b": 0.8399999737739563,
+    "a": 1.0
+  },
+  "curveStyle": 2,
+  "label": "",
+  "line": {
+    "capStart": {
+      "active": false,
+      "shape": 3,
+      "size": 5.0,
+      "color": {
+        "r": 1.0,
+        "g": 0.8100000023841858,
+        "b": 0.30000001192092898,
+        "a": 1.0
+      },
+      "angleOffset": 0.0
+    },
+    "capEnd": {
+      "active": false,
+      "shape": 3,
+      "size": 5.0,
+      "color": {
+        "r": 1.0,
+        "g": 0.8100000023841858,
+        "b": 0.30000001192092898,
+        "a": 1.0
+      },
+      "angleOffset": 0.0
+    },
+    "ID": "",
+    "startWidth": 3.0,
+    "endWidth": 3.0,
+    "dashDistance": 5.0,
+    "color": {
+      "r": 0.30000001192092898,
+      "g": 0.30000001192092898,
+      "b": 0.30000001192092898,
+      "a": 1.0
+    },
+    "points": [
+    ],
+    "lineStyle": 0,
+    "length": 0.0,
+    "animation": {
+      "isActive": false,
+      "pointsDistance": 90.0,
+      "size": 10.0,
+      "color": {
+        "r": 0.30135229229927065,
+        "g": 0.8867924213409424,
+        "b": 0.29699182510375979,
+        "a": 1.0
+      },
+      "shape": 1,
+      "speed": 0.0
+    }
+  },
+  "enableDrag": true,
+  "enableHover": true,
+  "enableSelect": true,
+  "disableClick": false
+}
