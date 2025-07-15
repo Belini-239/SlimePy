@@ -36,13 +36,6 @@ class Lexer:
         self.lg.add('PRINT', r'\bprint\b')
         self.lg.add('IF', r'\bif\b')
 
-        # Operators
-        self.lg.add('PLUS', r'\+')
-        self.lg.add('MINUS', r'-')
-        self.lg.add('MULTIPLY', r'\*')
-        self.lg.add('DIVIDE', r'/')
-        self.lg.add('ASSIGN', r'=')
-
         # Comparison operators
         self.lg.add('EQ', r'==')
         self.lg.add('LE', r'<=')
@@ -50,11 +43,18 @@ class Lexer:
         self.lg.add('LT', r'<')
         self.lg.add('GT', r'>')
 
+        # Operators
+        self.lg.add('PLUS', r'\+')
+        self.lg.add('MINUS', r'-')
+        self.lg.add('MULTIPLY', r'\*')
+        self.lg.add('DIVIDE', r'/')
+        self.lg.add('ASSIGN', r'=')
+
         # Logical operators
         self.lg.add('AND', r'\band\b')
         self.lg.add('OR', r'\bor\b')
         self.lg.add('NOT', r'\bnot\b')
-        self.lg.add('XOR', r'\bxor\b')
+        self.lg.add('XOR', r'\bor\b')
         self.lg.add('NOR', r'\bnor\b')
         self.lg.add('NAND', r'\bnand\b')
         self.lg.add('XNOR', r'\bxnor\b')

@@ -8,7 +8,8 @@ def gen_id() -> str:
 
 
 class Node:
-    def __init__(self, node_file, ports=None, args=None):
+    def __init__(self, node_file, ports: list = None, args: dict = None):
+        self.node_hash = type(self).__name__ + str(args)
         if args is None:
             args = {}
         if ports is None:

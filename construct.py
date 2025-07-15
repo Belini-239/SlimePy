@@ -2,6 +2,7 @@ from generator.ast_nodes import *
 from generator.functions_list import *
 from generator.reserved_idents import ReservedRegister
 from generator.variables import VarsManager, Variable
+from optimizer import Optimizer
 
 
 class Constructor:
@@ -11,14 +12,7 @@ class Constructor:
         BuiltInRegister.set_graph(self.graph)
         self.vars_manager = VarsManager()
 
-        self.numbers_dict = {}
-        self.booleans_dict = {}
-        self.vectors_splits_dict = {}
-        self.colors_dict = {}
-
-        reserved_out = ReservedRegister.get_out_list()
-        for var in reserved_out:
-            self.vars_manager.add_var(Variable(var['name'], None, var['type']))
+        self.optimization_dict = {}
 
     def full_construct(self, node):
         reserved_out = ReservedRegister.get_out_list()
@@ -120,7 +114,6 @@ class Constructor:
 
                         var.sid = or1.ports['out']
 
-
         elif isinstance(node, BinaryOp):
             self.construct(node.left)
             self.construct(node.right)
@@ -161,7 +154,8 @@ class Constructor:
                 node.type = 'bool'
                 tmp = ns.CompareFloatsNode(node.op)
 
-            elif node.op in ['and', 'or', '==', 'xor', 'xnor', 'nor', 'nand'] and node.left.type == node.right.type == 'bool':
+            elif node.op in ['and', 'or', '==', 'xor', 'xnor', 'nor',
+                             'nand'] and node.left.type == node.right.type == 'bool':
                 node.type = 'bool'
                 op = node.op
                 if op == '==':
@@ -172,9 +166,7 @@ class Constructor:
                 raise Exception("Bad binary operation: " + node.left.type + " " + node.op + " " + node.right.type)
 
             if tmp:
-                self.graph.add_node(tmp)
-                self.graph.add_edge(node.left.SID, tmp.ports['in1'])
-                self.graph.add_edge(node.right.SID, tmp.ports['in2'])
+                tmp = Optimizer.add_node(self.graph, tmp, {'in1': node.left.SID, 'in2': node.right.SID})
                 node.SID = tmp.ports['out']
 
             # TODO
@@ -186,33 +178,25 @@ class Constructor:
                 node.type = 'bool'
                 if node.expr.type != 'bool':
                     raise Exception(f'Ban unary operation: {node.op} {node.type}')
-                tmp = ns.NotNode()
+
+                tmp = Optimizer.add_node(self.graph, ns.NotNode(), {'in': node.expr.SID})
                 node.SID = tmp.ports['out']
-                self.graph.add_node(tmp)
-                self.graph.add_edge(node.expr.SID, tmp.ports['in'])
 
             if node.op == '-':
                 if isinstance(node.expr, Number):
                     value = node.expr.value * -1
 
-                    if value not in self.numbers_dict:
-                        tmp = ns.FloatNode(float(value))
-                        self.numbers_dict[value] = tmp.ports['out']
-                        self.graph.add_node(tmp)
-                    node.SID = str(self.numbers_dict[value])
+                    tmp = Optimizer.add_node(self.graph, ns.FloatNode(float(value)), {})
+                    node.SID = tmp.ports['out']
                     node.type = 'number'
                 else:
                     self.construct(node.expr)
                     if node.expr.type == 'number':
-                        tmp = ns.SubtractFloatsNode()
-                        self.graph.add_node(tmp)
-                        self.graph.add_edge(node.expr.SID, tmp.ports['in2'])
+                        tmp = Optimizer.add_node(self.graph, ns.SubtractFloatsNode(), {'in2': node.expr.SID})
                         node.SID = tmp.ports['out']
                         node.type = 'number'
                     elif node.expr.type == 'vec3':
-                        tmp = ns.SubtractVectorsNode()
-                        self.graph.add_node(tmp)
-                        self.graph.add_edge(node.expr.SID, tmp.ports['in2'])
+                        tmp = Optimizer.add_node(self.graph, ns.SubtractVectorsNode(), {'in2': node.expr.SID})
                         node.SID = tmp.ports['out']
                         node.type = 'vec3'
                     else:
@@ -223,40 +207,25 @@ class Constructor:
             self.construct(node.y)
             self.construct(node.z)
 
-            tmp = ns.VectorNode()
+            tmp = Optimizer.add_node(self.graph, ns.VectorNode(), {'x': node.x.SID, 'y': node.y.SID, 'z': node.z.SID})
             node.SID = str(tmp.ports['out'])
             node.type = 'vec3'
-            self.graph.add_node(tmp)
-            self.graph.add_edge(node.x.SID, tmp.ports['x'])
-            self.graph.add_edge(node.y.SID, tmp.ports['y'])
-            self.graph.add_edge(node.z.SID, tmp.ports['z'])
 
         elif isinstance(node, VectorComponent):
             self.construct(node.vector)
 
-            if node.vector.SID not in self.vectors_splits_dict:
-                tmp = ns.SplitVectorNode()
-                self.graph.add_node(tmp)
-                self.graph.add_edge(node.vector.SID, tmp.ports['in'])
-                self.vectors_splits_dict[node.vector.SID] = tmp
-
-            node.SID = self.vectors_splits_dict[node.vector.SID].ports[node.component]
+            tmp = Optimizer.add_node(self.graph, ns.SplitVectorNode(), {'in': node.vector.SID})
+            node.SID = tmp.ports[node.component]
             node.type = 'number'
 
         elif isinstance(node, Number):
-            if node.value not in self.numbers_dict:
-                tmp = ns.FloatNode(float(node.value))
-                self.numbers_dict[node.value] = tmp.ports['out']
-                self.graph.add_node(tmp)
-            node.SID = str(self.numbers_dict[node.value])
+            tmp = Optimizer.add_node(self.graph, ns.FloatNode(float(node.value)), {})
+            node.SID = tmp.ports['out']
             node.type = 'number'
 
         elif isinstance(node, Boolean):
-            if node.value not in self.booleans_dict:
-                tmp = ns.BoolNode(bool(node.value))
-                self.booleans_dict[node.value] = tmp.ports['out']
-                self.graph.add_node(tmp)
-            node.SID = str(self.booleans_dict[node.value])
+            tmp = Optimizer.add_node(self.graph, ns.BoolNode(bool(node.value)), {})
+            node.SID = tmp.ports['out']
             node.type = 'bool'
 
         elif isinstance(node, Identifier):
@@ -282,11 +251,8 @@ class Constructor:
 
         elif isinstance(node, Color):
             node.type = 'color'
-            if node.color not in self.colors_dict:
-                tmp = ns.ColorNode(node.color)
-                self.colors_dict[node.color] = tmp.ports['out']
-                self.graph.add_node(tmp)
-            node.SID = self.colors_dict[node.color]
+            tmp = Optimizer.add_node(self.graph, ns.ColorNode(node.color), {})
+            node.SID = tmp.ports['out']
 
         else:
             print(f"Unknown node: {type(node)}")
