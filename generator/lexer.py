@@ -9,7 +9,6 @@ class Lexer:
         self.lg.ignore(r'/\*[\s\S]*?\*/')
         self.lg.ignore(r'//[^\n]*')
 
-
         # Data types
         self.lg.add('FLOAT', r'\d+\.\d+')
         self.lg.add('INTEGER', r'\d+')
