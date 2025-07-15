@@ -1,6 +1,7 @@
 # SlimePy
 A simple language for competitions from AIA
 #### Code example:
+(Another examples in /examples)
 
 ```
 {
