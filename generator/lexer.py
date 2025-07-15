@@ -16,13 +16,13 @@ class Lexer:
         self.lg.add('STRING', r'\"[^\"]*\"')
 
         # Type keywords
-        self.lg.add('NUMBER_TYPE', r'number')
-        self.lg.add('BOOL_TYPE', r'bool')
-        self.lg.add('VEC3_TYPE', r'vec3')
+        self.lg.add('NUMBER_TYPE', r'\bnumber\b')
+        self.lg.add('BOOL_TYPE', r'\bbool\b')
+        self.lg.add('VEC3_TYPE', r'\bvec3\b')
 
         # Boolean literals
-        self.lg.add('TRUE', r'true')
-        self.lg.add('FALSE', r'false')
+        self.lg.add('TRUE', r'\btrue\b')
+        self.lg.add('FALSE', r'\bfalse\b')
 
         # Vector operations
         self.lg.add('VEC_X', r'\.x')
@@ -33,8 +33,8 @@ class Lexer:
         self.lg.add('CROSS', r'\^')
 
         # Keywords
-        self.lg.add('PRINT', r'print')
-        self.lg.add('IF', r'if')
+        self.lg.add('PRINT', r'\bprint\b')
+        self.lg.add('IF', r'\bif\b')
 
         # Operators
         self.lg.add('PLUS', r'\+')
@@ -51,13 +51,13 @@ class Lexer:
         self.lg.add('GT', r'>')
 
         # Logical operators
-        self.lg.add('AND', r'and')
-        self.lg.add('OR', r'or')
-        self.lg.add('NOT', r'not')
-        self.lg.add('XOR', r'xor')
-        self.lg.add('NOR', r'nor')
-        self.lg.add('NAND', r'nand')
-        self.lg.add('XNOR', r'xnor')
+        self.lg.add('AND', r'\band\b')
+        self.lg.add('OR', r'\bor\b')
+        self.lg.add('NOT', r'\bnot\b')
+        self.lg.add('XOR', r'\bxor\b')
+        self.lg.add('NOR', r'\bnor\b')
+        self.lg.add('NAND', r'\bnand\b')
+        self.lg.add('XNOR', r'\bxnor\b')
 
         # Delimiters
         self.lg.add('LPAREN', r'\(')

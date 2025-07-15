@@ -14,6 +14,8 @@ class Graph:
         self.nodes.append(node)
 
     def add_edge(self, port_from, port_to):
+        if port_to is None or port_from is None:
+            return
         self.edges.append((port_from, port_to))
 
     def get_text(self) -> str:
