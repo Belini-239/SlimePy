@@ -116,6 +116,16 @@ class Declaration(Node):
         return f"Declaration(\n  name='{self.name}',\n  type='{self.var_type}',\n  expr={self.expr})"
 
 
+class GlobalDeclaration(Node):
+    def __init__(self, names, var_type):
+        self.names = names
+        self.var_type = var_type
+        super().__init__()
+
+    def __repr__(self):
+        return f"Global declaration(\n  names='{self.names}',\n  type='{self.var_type}')"
+
+
 class Assignment(Node):
     def __init__(self, name, expr):
         self.name = name

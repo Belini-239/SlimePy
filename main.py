@@ -16,9 +16,8 @@ if __name__ == "__main__":
 
     parser = Parser().build()
     ast = parser.parse(iter(tokens))
-
     constructor = Constructor()
-    constructor.full_construct(ast)
+    constructor.full_construct(ast[1], ast[0])
 
     with open(path_out, "w") as file:
         file.write(constructor.graph.get_text())

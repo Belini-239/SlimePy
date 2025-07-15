@@ -69,6 +69,9 @@ class Lexer:
         # Colors
         self.lg.add('COLOR_TYPE', 'COLOR.')
 
+        # Global
+        self.lg.add('GLOBAL', r'\bglobal\b')
+
         self.lg.add('RESERVED_IDENTIFIER', r'\$[a-zA-Z_][a-zA-Z0-9_]*')
         self.lg.add('IDENTIFIER', r'[a-zA-Z_][a-zA-Z0-9_]*')
 

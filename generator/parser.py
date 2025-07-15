@@ -27,7 +27,9 @@ class Parser:
             'AND', 'OR', 'NOT', 'XOR', 'XNOR', 'NAND', 'NOR',
             # Delimiters
             'LPAREN', 'RPAREN', 'LBRACE', 'RBRACE',
-            'COLON', 'COMMA'
+            'COLON', 'COMMA',
+            # Globals
+            'GLOBAL',
         ]
 
         self.pg = ParserGenerator(
@@ -46,20 +48,49 @@ class Parser:
         self.vars = {}
 
     def parse(self):
-        @self.pg.production('program : block')
+        @self.pg.production('program : global_statement_list block')
         def program(p):
-            return p[0]
+            return [p[0], p[1]]
 
         @self.pg.production('block : LBRACE statement_list RBRACE')
         def block_braces(p):
             return Block(p[1])
 
+        @self.pg.production('statement_list : ')
         @self.pg.production('statement_list : statement')
         @self.pg.production('statement_list : statement statement_list')
         def statement_list(p):
+            if len(p) == 0:
+                return []
             if len(p) == 1:
                 return [p[0]]
             return [p[0]] + p[1]
+
+        @self.pg.production('global_statement_list : ')
+        @self.pg.production('global_statement_list : global_statement')
+        @self.pg.production('global_statement_list : global_statement global_statement_list')
+        def global_statement_list(p):
+            if len(p) == 0:
+                return []
+            if len(p) == 1:
+                return [p[0]]
+            return [p[0]] + p[1]
+
+        @self.pg.production('global_statement : global_declaration')
+        def global_statement(p):
+            return p[0]
+
+        @self.pg.production('global_declaration : global_declaration_start COLON type')
+        def global_declaration_start(p):
+            return GlobalDeclaration(p[0], p[2])
+
+        @self.pg.production('global_declaration_start : global_declaration_start COMMA IDENTIFIER')
+        def global_declaration_start(p):
+            return p[0] + [p[2].value]
+
+        @self.pg.production('global_declaration_start : GLOBAL IDENTIFIER')
+        def global_declaration_start(p):
+            return [p[1].value]
 
         @self.pg.production('statement : declaration')
         @self.pg.production('statement : assignment')

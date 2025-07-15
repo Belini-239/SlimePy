@@ -14,19 +14,38 @@ class Constructor:
 
         self.optimization_dict = {}
 
-    def full_construct(self, node):
+    def full_construct(self, main_node, global_scope):
         reserved_out = ReservedRegister.get_out_list()
         for var in reserved_out:
             self.vars_manager.add_var(Variable(var['name'], None, var['type']))
 
-        self.construct(node)
+        global_in = {}
+        for dec in global_scope:
+            for name in dec.names:
+                if dec.var_type == 'number':
+                    tmp = ns.AddFloatsNode()
+                if dec.var_type == 'vec3':
+                    tmp = ns.AddVectorsNode()
+                if dec.var_type == 'bool':
+                    tmp = ns.CompareBoolsNode('or')
+                self.graph.add_node(tmp)
+                global_in[name] = tmp.ports['in1']
+                self.vars_manager.add_var(Variable(name, tmp.ports['out'], dec.var_type))
+
+        self.construct(main_node)
 
         vars_stamp = self.vars_manager.get_stamp()
         vars_dict = {}
         for name, var in vars_stamp.items():
-            if var.sid:
+            if var.sid and name[0] == '$':
                 vars_dict[name] = var.sid
         ReservedRegister.fill_out(vars_dict, self.graph)
+
+        for dec in global_scope:
+            for name in dec.names:
+                self.graph.add_edge(vars_stamp[name].sid, global_in[name])
+
+
 
     def construct(self, node):
 
