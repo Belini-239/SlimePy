@@ -42,19 +42,21 @@ A simple language for competitions from AIA
 ## Usage
 1. Download full project
 2. You need python
-3. Install rply lib
-Run in cmd: ```pip install rply```
-5. Run main.py with the path to the source code file and the path to the output file
+3. Install rply lib (Run in cmd: ```pip install rply```)
+4. Run main.py with the path to the source code file and the path to the output file
+
 ```py C:\path\to\main.py C:\path\to\source.sp C:\path\to\output.txt```
+
 (You can make a simple bash script if you want)
 
 ## Basic Syntax
 ### Comments
 Standart comments:
-// - one line
+
+// one line
 
 /*
- - several lines
+several lines
 */
 
 ### Types
