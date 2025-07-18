@@ -1,3 +1,5 @@
+import random
+
 from builder.node import Node
 
 
@@ -48,6 +50,7 @@ class OperationNode(Node):
 class RandomFloatNode(Node):
     def __init__(self):
         super().__init__('random_float.json', ['min', 'max', 'out'])
+        self.node_hash = f"RandomFloatNode{random.random()}"
 
 
 class CompareFloatsNode(Node):
