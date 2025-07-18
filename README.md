@@ -109,6 +109,32 @@ COLOR.YELLOW
 #### Variable Assignment
 ```variable_name = value```
 
+#### Global Declaration
+You can declare global variables, that are not resetting every update cycle, out of the main scope
+
+```global var1, var2, var3: type```
+
+You cannot assign anything to them in global scope, but you can do it inside main scope
+
+I suggest something like this:
+
+```
+global some_var: number
+global iter: number
+{
+  if (iter <= 1) {
+    some_var = 10
+  }
+  some_var = some_var - 1
+  print(some_var) // 10, 9, 8, 7, ...
+}
+```
+
+```iter <= 1``` is better than ```iter == 0```, because the second is not working 🤷
+
+Just know, that this thing is kinda buggy
+
+
 #### Built-in variables
 There are several registered variables that are used as alternatives to GetBool(), GetFloat() and GetVector3() from the visual language. You can use them in your calclations, but **YOU CANNOT ASSIGN A VALUE TO THEM**
 ##### List of built-in variables (they start with '$'):
