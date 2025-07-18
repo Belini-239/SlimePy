@@ -47,7 +47,7 @@ class OperationNode(Node):
 
 class RandomFloatNode(Node):
     def __init__(self):
-        super().__init__('random_floats.json', ['min', 'max', 'out'])
+        super().__init__('random_float.json', ['min', 'max', 'out'])
 
 
 class CompareFloatsNode(Node):
@@ -151,7 +151,8 @@ class DrawDiscNode(Node):
 
 class ColorNode(Node):
     def __init__(self, color: str):
-        super().__init__('color.json', ['out'], {'color': color.title()})
+        color = color.replace('_', ' ').title()
+        super().__init__('color.json', ['out'], {'color': color})
 
 
 # =========== SLIME ===========
