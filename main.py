@@ -42,6 +42,8 @@ def build_code():
     constructor = Constructor()
     constructor.full_construct(ast[1], ast[0])
 
+    constructor.graph.optimize()
+
     with open(path_out, "w") as file:
         file.write(constructor.graph.get_text())
 
