@@ -3,6 +3,9 @@ from generator.functions_list import *
 from generator.reserved_idents import ReservedRegister
 from generator.variables import VarsManager, Variable
 from optimizer import Optimizer
+from error_handler import ErrorHandler
+
+from data import countriesList
 
 
 class Constructor:
@@ -45,233 +48,245 @@ class Constructor:
             for name in dec.names:
                 self.graph.add_edge(vars_stamp[name].sid, global_in[name])
 
-
-
     def construct(self, node):
+        try:
+            if isinstance(node, Block):
+                index = self.vars_manager.cur_index
+                for stmt in node.statements:
+                    self.construct(stmt)
+                self.vars_manager.pop_suf(index)
 
-        if isinstance(node, Block):
-            index = self.vars_manager.cur_index
-            for stmt in node.statements:
-                self.construct(stmt)
-            self.vars_manager.pop_suf(index)
+            elif isinstance(node, Declaration):
+                self.construct(node.expr)
+                if node.var_type != node.expr.type:
+                    ErrorHandler.error(
+                        "Types are not equal (" + node.name + ": " + node.var_type + ", " + node.expr.type + ")",
+                        node.token)
+                var = Variable(node.name, node.expr.SID, node.var_type)
+                self.vars_manager.add_var(var)
 
-        elif isinstance(node, Declaration):
-            self.construct(node.expr)
-            if node.var_type != node.expr.type:
-                raise Exception("Types are not equal (" + node.name + " " + node.var_type + " " + node.expr.type + ")")
-            var = Variable(node.name, node.expr.SID, node.var_type)
-            self.vars_manager.add_var(var)
+            elif isinstance(node, Assignment):
+                self.construct(node.expr)
+                var = self.vars_manager.get_var(node.name)
+                if not var:
+                    ErrorHandler.error("Unknown variable name (" + node.name + ")", node.token)
+                if var.type != node.expr.type:
+                    ErrorHandler.error("Types are not equal (" + node.name + ": " + var.type + ", " + node.expr.type + ")",
+                                       node.token)
+                var.sid = node.expr.SID
 
-        elif isinstance(node, Assignment):
-            self.construct(node.expr)
-            var = self.vars_manager.get_var(node.name)
-            if not var:
-                raise Exception("Unknown variable name (" + node.name + ")")
-            if var.type != node.expr.type:
-                raise Exception("Types are not equal (" + node.name + " " + var.type + " " + node.expr.type + ")")
-            var.sid = node.expr.SID
+            elif isinstance(node, Print):
+                self.construct(node.expr)
 
-        elif isinstance(node, Print):
-            self.construct(node.expr)
+                tmp = ns.DebugNode()
+                self.graph.add_node(tmp)
+                self.graph.add_edge(node.expr.SID, tmp.ports['in'])
 
-            tmp = ns.DebugNode()
-            self.graph.add_node(tmp)
-            self.graph.add_edge(node.expr.SID, tmp.ports['in'])
+            elif isinstance(node, If):
+                self.construct(node.condition)
+                if node.condition.type != "bool":
+                    ErrorHandler.error("Condition should be boolean", node.token)
 
-        elif isinstance(node, If):
-            self.construct(node.condition)
-            if node.condition.type != "bool":
-                raise Exception("Condition should be boolean")
+                stamp = self.vars_manager.get_stamp()
+                self.construct(node.true_block)
+                stamp_ = self.vars_manager.get_stamp()
 
-            stamp = self.vars_manager.get_stamp()
-            self.construct(node.true_block)
-            stamp_ = self.vars_manager.get_stamp()
+                change_names = []
+                for k, v in stamp.items():
+                    if v.sid != stamp_[k].sid:
+                        change_names.append(k)
 
-            change_names = []
-            for k, v in stamp.items():
-                if v.sid != stamp_[k].sid:
-                    change_names.append(k)
-
-            for name in change_names:
-                tmp = None
-                var = self.vars_manager.get_var(name)
-                if var.type == 'number':
-                    tmp = ns.ConditionalFloatNode()
-                if var.type == 'vec3':
-                    tmp = ns.ConditionalVectorNode()
-                if tmp:
-                    self.graph.add_node(tmp)
-                    var_else = stamp[name].sid
-                    var_if = stamp_[name].sid
-                    self.graph.add_edge(var_if, tmp.ports['in1'])
-                    self.graph.add_edge(var_else, tmp.ports['in2'])
-                    self.graph.add_edge(node.condition.SID, tmp.ports['cond'])
-                    var.sid = tmp.ports['out']
-                else:
-                    if var.type == 'bool':
-                        or1 = ns.CompareBoolsNode('or')
-                        and1 = ns.CompareBoolsNode('and')
-                        and2 = ns.CompareBoolsNode('and')
-                        inv1 = ns.NotNode()
-
+                for name in change_names:
+                    tmp = None
+                    var = self.vars_manager.get_var(name)
+                    if var.type == 'number':
+                        tmp = ns.ConditionalFloatNode()
+                    if var.type == 'vec3':
+                        tmp = ns.ConditionalVectorNode()
+                    if tmp:
+                        self.graph.add_node(tmp)
                         var_else = stamp[name].sid
                         var_if = stamp_[name].sid
+                        self.graph.add_edge(var_if, tmp.ports['in1'])
+                        self.graph.add_edge(var_else, tmp.ports['in2'])
+                        self.graph.add_edge(node.condition.SID, tmp.ports['cond'])
+                        var.sid = tmp.ports['out']
+                    else:
+                        if var.type == 'bool':
+                            or1 = ns.CompareBoolsNode('or')
+                            and1 = ns.CompareBoolsNode('and')
+                            and2 = ns.CompareBoolsNode('and')
+                            inv1 = ns.NotNode()
 
-                        self.graph.add_node(or1)
-                        self.graph.add_node(and1)
-                        self.graph.add_node(and2)
-                        self.graph.add_node(inv1)
+                            var_else = stamp[name].sid
+                            var_if = stamp_[name].sid
 
-                        self.graph.add_edge(node.condition.SID, and1.ports['in1'])
-                        self.graph.add_edge(node.condition.SID, inv1.ports['in'])
-                        self.graph.add_edge(inv1.ports['out'], and2.ports['in1'])
-                        self.graph.add_edge(and1.ports['out'], or1.ports['in1'])
-                        self.graph.add_edge(and2.ports['out'], or1.ports['in2'])
+                            self.graph.add_node(or1)
+                            self.graph.add_node(and1)
+                            self.graph.add_node(and2)
+                            self.graph.add_node(inv1)
 
-                        self.graph.add_edge(var_if, and1.ports['in2'])
-                        self.graph.add_edge(var_else, and2.ports['in2'])
+                            self.graph.add_edge(node.condition.SID, and1.ports['in1'])
+                            self.graph.add_edge(node.condition.SID, inv1.ports['in'])
+                            self.graph.add_edge(inv1.ports['out'], and2.ports['in1'])
+                            self.graph.add_edge(and1.ports['out'], or1.ports['in1'])
+                            self.graph.add_edge(and2.ports['out'], or1.ports['in2'])
 
-                        var.sid = or1.ports['out']
+                            self.graph.add_edge(var_if, and1.ports['in2'])
+                            self.graph.add_edge(var_else, and2.ports['in2'])
 
-        elif isinstance(node, BinaryOp):
-            self.construct(node.left)
-            self.construct(node.right)
+                            var.sid = or1.ports['out']
 
-            tmp = None
-            if node.op in ['+', '-', '/', '*'] and node.left.type == 'number' and node.right.type == 'number':
-                node.type = 'number'
-                if node.op == '+':
-                    tmp = ns.AddFloatsNode()
-                elif node.op == '/':
-                    tmp = ns.DivideFloatsNode()
-                elif node.op == '-':
-                    tmp = ns.SubtractFloatsNode()
-                elif node.op == '*':
-                    tmp = ns.MultiplyFloatsNode()
+            elif isinstance(node, BinaryOp):
+                self.construct(node.left)
+                self.construct(node.right)
 
-            elif node.op in ['+', '-', '^'] and node.left.type == 'vec3' and node.right.type == 'vec3':
-                node.type = 'vec3'
-                if node.op == '+':
-                    tmp = ns.AddVectorsNode()
-                elif node.op == '-':
-                    tmp = ns.SubtractVectorsNode()
-                elif node.op == '^':
-                    tmp = ns.CrossProductNode()
-
-            elif node.op == '*' and node.left.type == 'vec3' and node.right.type == 'vec3':
-                node.type = 'number'
-                tmp = ns.DotProductNode()
-
-            elif node.op == '*' and 'vec3' in [node.left.type, node.right.type] and 'number' in [node.left.type,
-                                                                                                 node.right.type]:
-                node.type = 'vec3'
-                if node.left.type == 'number':
-                    node.left, node.right = node.right, node.left
-                tmp = ns.ScaleVectorNode()
-
-            elif node.op in ['==', '<', '>', '<=', '>='] and node.left.type == node.right.type == 'number':
-                node.type = 'bool'
-                tmp = ns.CompareFloatsNode(node.op)
-
-            elif node.op in ['and', 'or', '==', 'xor', 'xnor', 'nor',
-                             'nand'] and node.left.type == node.right.type == 'bool':
-                node.type = 'bool'
-                op = node.op
-                if op == '==':
-                    op = 'eq'
-                tmp = ns.CompareBoolsNode(op)
-
-            else:
-                raise Exception("Bad binary operation: " + node.left.type + " " + node.op + " " + node.right.type)
-
-            if tmp:
-                tmp = Optimizer.add_node(self.graph, tmp, {'in1': node.left.SID, 'in2': node.right.SID})
-                node.SID = tmp.ports['out']
-
-            # TODO
-
-        elif isinstance(node, UnaryOp):
-
-            if node.op == 'not':
-                self.construct(node.expr)
-                node.type = 'bool'
-                if node.expr.type != 'bool':
-                    raise Exception(f'Ban unary operation: {node.op} {node.type}')
-
-                tmp = Optimizer.add_node(self.graph, ns.NotNode(), {'in': node.expr.SID})
-                node.SID = tmp.ports['out']
-
-            if node.op == '-':
-                if isinstance(node.expr, Number):
-                    value = node.expr.value * -1
-
-                    tmp = Optimizer.add_node(self.graph, ns.FloatNode(float(value)), {})
-                    node.SID = tmp.ports['out']
+                tmp = None
+                if node.op in ['+', '-', '/', '*'] and node.left.type == 'number' and node.right.type == 'number':
                     node.type = 'number'
+                    if node.op == '+':
+                        tmp = ns.AddFloatsNode()
+                    elif node.op == '/':
+                        tmp = ns.DivideFloatsNode()
+                    elif node.op == '-':
+                        tmp = ns.SubtractFloatsNode()
+                    elif node.op == '*':
+                        tmp = ns.MultiplyFloatsNode()
+
+                elif node.op in ['+', '-', '^'] and node.left.type == 'vec3' and node.right.type == 'vec3':
+                    node.type = 'vec3'
+                    if node.op == '+':
+                        tmp = ns.AddVectorsNode()
+                    elif node.op == '-':
+                        tmp = ns.SubtractVectorsNode()
+                    elif node.op == '^':
+                        tmp = ns.CrossProductNode()
+
+                elif node.op == '*' and node.left.type == 'vec3' and node.right.type == 'vec3':
+                    node.type = 'number'
+                    tmp = ns.DotProductNode()
+
+                elif node.op == '*' and 'vec3' in [node.left.type, node.right.type] and 'number' in [node.left.type,
+                                                                                                     node.right.type]:
+                    node.type = 'vec3'
+                    if node.left.type == 'number':
+                        node.left, node.right = node.right, node.left
+                    tmp = ns.ScaleVectorNode()
+
+                elif node.op in ['==', '<', '>', '<=', '>='] and node.left.type == node.right.type == 'number':
+                    node.type = 'bool'
+                    tmp = ns.CompareFloatsNode(node.op)
+
+                elif node.op in ['and', 'or', '==', 'xor', 'xnor', 'nor',
+                                 'nand'] and node.left.type == node.right.type == 'bool':
+                    node.type = 'bool'
+                    op = node.op
+                    if op == '==':
+                        op = 'eq'
+                    tmp = ns.CompareBoolsNode(op)
+
                 else:
+                    ErrorHandler.error("Bad binary operation: " + node.left.type + " " + node.op + " " + node.right.type, node.token)
+
+                if tmp:
+                    tmp = Optimizer.add_node(self.graph, tmp, {'in1': node.left.SID, 'in2': node.right.SID})
+                    node.SID = tmp.ports['out']
+
+            elif isinstance(node, UnaryOp):
+
+                if node.op == 'not':
                     self.construct(node.expr)
-                    if node.expr.type == 'number':
-                        tmp = Optimizer.add_node(self.graph, ns.SubtractFloatsNode(), {'in2': node.expr.SID})
+                    node.type = 'bool'
+                    if node.expr.type != 'bool':
+                        ErrorHandler.error(f'Ban unary operation: {node.op} {node.type}', node.token)
+
+                    tmp = Optimizer.add_node(self.graph, ns.NotNode(), {'in': node.expr.SID})
+                    node.SID = tmp.ports['out']
+
+                if node.op == '-':
+                    if isinstance(node.expr, Number):
+                        value = node.expr.value * -1
+
+                        tmp = Optimizer.add_node(self.graph, ns.FloatNode(float(value)), {})
                         node.SID = tmp.ports['out']
                         node.type = 'number'
-                    elif node.expr.type == 'vec3':
-                        tmp = Optimizer.add_node(self.graph, ns.SubtractVectorsNode(), {'in2': node.expr.SID})
-                        node.SID = tmp.ports['out']
-                        node.type = 'vec3'
                     else:
-                        raise Exception(f'Ban unary operation: {node.op} {node.type}')
+                        self.construct(node.expr)
+                        if node.expr.type == 'number':
+                            tmp = Optimizer.add_node(self.graph, ns.SubtractFloatsNode(), {'in2': node.expr.SID})
+                            node.SID = tmp.ports['out']
+                            node.type = 'number'
+                        elif node.expr.type == 'vec3':
+                            tmp = Optimizer.add_node(self.graph, ns.SubtractVectorsNode(), {'in2': node.expr.SID})
+                            node.SID = tmp.ports['out']
+                            node.type = 'vec3'
+                        else:
+                            ErrorHandler.error(f'Ban unary operation: {node.op} {node.type}', node.token)
 
-        elif isinstance(node, Vec3):
-            self.construct(node.x)
-            self.construct(node.y)
-            self.construct(node.z)
+            elif isinstance(node, Vec3):
+                self.construct(node.x)
+                self.construct(node.y)
+                self.construct(node.z)
 
-            tmp = Optimizer.add_node(self.graph, ns.VectorNode(), {'x': node.x.SID, 'y': node.y.SID, 'z': node.z.SID})
-            node.SID = str(tmp.ports['out'])
-            node.type = 'vec3'
+                tmp = Optimizer.add_node(self.graph, ns.VectorNode(), {'x': node.x.SID, 'y': node.y.SID, 'z': node.z.SID})
+                node.SID = str(tmp.ports['out'])
+                node.type = 'vec3'
 
-        elif isinstance(node, VectorComponent):
-            self.construct(node.vector)
+            elif isinstance(node, VectorComponent):
+                self.construct(node.vector)
 
-            tmp = Optimizer.add_node(self.graph, ns.SplitVectorNode(), {'in': node.vector.SID})
-            node.SID = tmp.ports[node.component]
-            node.type = 'number'
+                tmp = Optimizer.add_node(self.graph, ns.SplitVectorNode(), {'in': node.vector.SID})
+                node.SID = tmp.ports[node.component]
+                node.type = 'number'
 
-        elif isinstance(node, Number):
-            tmp = Optimizer.add_node(self.graph, ns.FloatNode(float(node.value)), {})
-            node.SID = tmp.ports['out']
-            node.type = 'number'
+            elif isinstance(node, Number):
+                tmp = Optimizer.add_node(self.graph, ns.FloatNode(float(node.value)), {})
+                node.SID = tmp.ports['out']
+                node.type = 'number'
 
-        elif isinstance(node, Boolean):
-            tmp = Optimizer.add_node(self.graph, ns.BoolNode(bool(node.value)), {})
-            node.SID = tmp.ports['out']
-            node.type = 'bool'
+            elif isinstance(node, Boolean):
+                tmp = Optimizer.add_node(self.graph, ns.BoolNode(bool(node.value)), {})
+                node.SID = tmp.ports['out']
+                node.type = 'bool'
 
-        elif isinstance(node, Identifier):
-            var = self.vars_manager.get_var(node.name)
-            if not var:
-                raise Exception("Unknown variable name (" + node.name + ")")
-            node.SID = str(var.sid)
-            node.type = var.type
+            elif isinstance(node, Identifier):
+                var = self.vars_manager.get_var(node.name)
+                if not var:
+                    ErrorHandler.error("Unknown variable name (" + node.name + ")", node.token)
+                node.SID = str(var.sid)
+                node.type = var.type
 
-        elif isinstance(node, FunctionCall):
-            for arg in node.args:
-                self.construct(arg)
-            BuiltInRegister.call(node.name, node.args, node)
+            elif isinstance(node, FunctionCall):
+                for arg in node.args:
+                    self.construct(arg)
+                try:
+                    BuiltInRegister.call(node.name, node.args, node)
+                except Exception as e:
+                    ErrorHandler.error(str(e), node.token)
 
-        elif isinstance(node, StringLiteral):
-            # TODO
-            pass
+            elif isinstance(node, StringLiteral):
+                if node.value in countriesList:
+                    node.type = 'country'
+                    tmp = Optimizer.add_node(self.graph, ns.CountryNode(node.value), {})
+                else:
+                    node.type = 'str'
+                    tmp = Optimizer.add_node(self.graph, ns.StringNode(node.value), {})
+                node.SID = tmp.ports['out']
 
-        elif isinstance(node, ReservedIdentifier):
-            var = ReservedRegister.get(node.name, self.graph)
-            node.SID = var.SID
-            node.type = var.type
+            elif isinstance(node, ReservedIdentifier):
+                try:
+                    var = ReservedRegister.get(node.name, self.graph)
+                except Exception as e:
+                    ErrorHandler.error(str(e), node.token)
+                node.SID = var.SID
+                node.type = var.type
 
-        elif isinstance(node, Color):
-            node.type = 'color'
-            tmp = Optimizer.add_node(self.graph, ns.ColorNode(node.color), {})
-            node.SID = tmp.ports['out']
+            elif isinstance(node, Color):
+                node.type = 'color'
+                tmp = Optimizer.add_node(self.graph, ns.ColorNode(node.color), {})
+                node.SID = tmp.ports['out']
+            else:
+                print(f"Unknown node: {type(node)}")
 
-        else:
-            print(f"Unknown node: {type(node)}")
+        except Exception as e:
+            ErrorHandler.error(str(e), node.token)

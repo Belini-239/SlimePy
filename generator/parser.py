@@ -1,5 +1,9 @@
+import warnings
+
 from rply import ParserGenerator, Token
 from generator.ast_nodes import *
+
+from error_handler import ErrorHandler
 
 
 class Parser:
@@ -32,6 +36,8 @@ class Parser:
             'GLOBAL',
         ]
 
+        warnings.filterwarnings("ignore")
+
         self.pg = ParserGenerator(
             tokens,
             precedence=[
@@ -43,9 +49,8 @@ class Parser:
                 ('right', ['NOT', 'UMINUS']),
                 ('left', ['VEC_X', 'VEC_Y', 'VEC_Z'])
             ]
-        )
 
-        self.vars = {}
+        )
 
     def parse(self):
         @self.pg.production('program : global_statement_list block')
@@ -54,7 +59,7 @@ class Parser:
 
         @self.pg.production('block : LBRACE statement_list RBRACE')
         def block_braces(p):
-            return Block(p[1])
+            return Block(p[1], p[0])
 
         @self.pg.production('statement_list : ')
         @self.pg.production('statement_list : statement')
@@ -82,7 +87,9 @@ class Parser:
 
         @self.pg.production('global_declaration : global_declaration_start COLON type')
         def global_declaration_start(p):
-            return GlobalDeclaration(p[0], p[2])
+            for name in p[0]:
+                ErrorHandler.variables.add(name)
+            return GlobalDeclaration(p[0], p[2], p[1])
 
         @self.pg.production('global_declaration_start : global_declaration_start COMMA IDENTIFIER')
         def global_declaration_start(p):
@@ -107,7 +114,7 @@ class Parser:
 
         @self.pg.production('function_call : IDENTIFIER LPAREN argument_list RPAREN')
         def function_call(p):
-            return FunctionCall(p[0].value, p[2])
+            return FunctionCall(p[0].value, p[2], p[0])
 
         @self.pg.production('argument_list : ')
         def empty_arguments(p):
@@ -125,9 +132,10 @@ class Parser:
         def declaration(p):
             var_type = p[2]
             var_name = p[0].value
-            self.vars[var_name] = var_type
 
-            return Declaration(var_name, var_type, p[4])
+            ErrorHandler.variables.add(var_name)
+
+            return Declaration(var_name, var_type, p[4], p[0])
 
         @self.pg.production('type : NUMBER_TYPE')
         @self.pg.production('type : BOOL_TYPE')
@@ -145,32 +153,32 @@ class Parser:
         @self.pg.production('assignment : IDENTIFIER ASSIGN expression')
         @self.pg.production('assignment : RESERVED_IDENTIFIER ASSIGN expression')
         def assignment(p):
-            return Assignment(p[0].value, p[2])
+            return Assignment(p[0].value, p[2], p[0])
 
         @self.pg.production('print_statement : PRINT LPAREN expression RPAREN')
         def print_statement(p):
-            return Print(p[2])
+            return Print(p[2], p[0])
 
         @self.pg.production('if_statement : IF LPAREN expression RPAREN block')
         @self.pg.production('if_statement : IF LPAREN expression RPAREN block ELSE block')
         def if_statement(p):
             false_block = p[6] if len(p) > 5 else None
-            return If(p[2], p[4], false_block)
+            return If(p[2], p[4], p[0], false_block)
 
         @self.pg.production('expression : expression VEC_X')
         @self.pg.production('expression : expression VEC_Y')
         @self.pg.production('expression : expression VEC_Z')
         def vector_component(p):
             component = p[1].gettokentype().replace('VEC_', '').lower()
-            return VectorComponent(p[0], component)
+            return VectorComponent(p[0], component, p[1])
 
         @self.pg.production('expression : NOT expression')
         def not_expression(p):
-            return UnaryOp('not', p[1])
+            return UnaryOp('not', p[1], p[0])
 
         @self.pg.production('expression : MINUS expression', precedence='UMINUS')
         def unary_minus(p):
-            return UnaryOp('-', p[1])
+            return UnaryOp('-', p[1], p[0])
 
         @self.pg.production('expression : expression DOT expression')
         @self.pg.production('expression : expression CROSS expression')
@@ -190,7 +198,7 @@ class Parser:
         @self.pg.production('expression : expression XNOR expression')
         @self.pg.production('expression : expression NAND expression')
         def comparison_expression(p):
-            return BinaryOp(p[0], p[1].value, p[2])
+            return BinaryOp(p[0], p[1].value, p[2], p[1])
 
         @self.pg.production('expression : term')
         def expression_term(p):
@@ -206,39 +214,36 @@ class Parser:
 
         @self.pg.production('primary : INTEGER')
         def primary_integer(p):
-            return Number(int(p[0].value))
+            return Number(int(p[0].value), p[0])
 
         @self.pg.production('primary : FLOAT')
         def primary_float(p):
-            return Number(float(p[0].value))
+            return Number(float(p[0].value), p[0])
 
         @self.pg.production('primary : STRING')
         def primary_string(p):
-            return StringLiteral(p[0].value[1:-1])
+            return StringLiteral(p[0].value[1:-1], p[0])
 
         @self.pg.production('primary : TRUE')
         def primary_true(p):
-            return Boolean(True)
+            return Boolean(True, p[0])
 
         @self.pg.production('primary : FALSE')
         def primary_false(p):
-            return Boolean(False)
+            return Boolean(False, p[0])
 
         @self.pg.production('primary : COLOR_TYPE IDENTIFIER')
         def primary_color(p):
             color = p[1].value.title()
-            return Color(color)
+            return Color(color, p[1])
 
         @self.pg.production('primary : RESERVED_IDENTIFIER')
         def primary_identifier(p):
-            return ReservedIdentifier(p[0].value)
+            return ReservedIdentifier(p[0].value, p[0])
 
         @self.pg.production('primary : IDENTIFIER')
         def primary_identifier(p):
-            var_name = p[0].value
-            if var_name not in self.vars:
-                return Identifier(p[0].value)
-            return Identifier(p[0].value, self.vars[var_name])
+            return Identifier(p[0].value, p[0])
 
         @self.pg.production('primary : vec3_constructor')
         def primary_vec3(p):
@@ -246,7 +251,7 @@ class Parser:
 
         @self.pg.production('vec3_constructor : VEC3_TYPE LPAREN expression COMMA expression COMMA expression RPAREN')
         def vec3_constructor(p):
-            return Vec3(p[2], p[4], p[6])
+            return Vec3(p[2], p[4], p[6], p[0])
 
         @self.pg.production('primary : LPAREN expression RPAREN')
         def primary_parens(p):
@@ -254,7 +259,7 @@ class Parser:
 
         @self.pg.error
         def error_handler(token):
-            raise ValueError(f"Unexpected token {token} {token.source_pos.lineno} {token.source_pos.colno}")
+            ErrorHandler.error(f"Unexpected token {token}", token)
 
     def build(self):
         self.parse()

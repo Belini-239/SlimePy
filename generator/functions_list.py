@@ -25,7 +25,7 @@ def builtin_clamp(graph: Graph, node, value, minv, maxv):
 @BuiltInRegister.register('atan', ['number'], 'number')
 @BuiltInRegister.register('sqrt', ['number'], 'number')
 @BuiltInRegister.register('sign', ['number'], 'number')
-@BuiltInRegister.register('log', ['number'], 'number')
+@BuiltInRegister.register('ln', ['number'], 'number')
 @BuiltInRegister.register('log10', ['number'], 'number')
 @BuiltInRegister.register('pow_e', ['number'], 'number')
 @BuiltInRegister.register('pow_10', ['number'], 'number')
@@ -78,3 +78,12 @@ def builtin_draw_line(graph: Graph, node, start, end, thickness, color):
 def builtin_draw_line(graph: Graph, node, pos, radius, thickness, color):
     tmp = Optimizer.add_node(graph, ns.DrawDiscNode(), {'pos': pos.SID, 'radius': radius.SID, 'thick': thickness.SID,
                                                         'color': color.SID})
+
+
+@BuiltInRegister.register('construct_slime', ['str', 'country', 'color', 'c_number', 'c_number', 'c_number'], 'none')
+def builtin_draw_line(graph: Graph, node, name, country, color, speed, accel, jump):
+    speed_stat = Optimizer.add_node(graph, ns.StatNode(speed.value), {}).ports['out']
+    accel_stat = Optimizer.add_node(graph, ns.StatNode(accel.value), {}).ports['out']
+    jump_stat = Optimizer.add_node(graph, ns.StatNode(jump.value), {}).ports['out']
+    tmp = Optimizer.add_node(graph, ns.ConstructSlimeNode(), {'name': name.SID, 'country': country.SID, 'accel': accel_stat,
+                                                              'color': color.SID, 'speed': speed_stat, 'jump': jump_stat})

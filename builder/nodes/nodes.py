@@ -42,7 +42,7 @@ class ConditionalFloatNode(Node):
 class OperationNode(Node):
     def __init__(self, operator):
         ops = ['abs', 'round', 'floor', 'ceil', 'sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'sqrt', 'sign',
-               'log', 'log10', 'pow_e', 'pow_10']
+               'ln', 'log10', 'pow_e', 'pow_10']
         op = ops.index(operator)
         super().__init__('operation.json', ['in', 'out'], {'operation': op})
 
@@ -138,16 +138,19 @@ class NormalizeNode(Node):
 class DebugNode(Node):
     def __init__(self):
         super().__init__('debug.json', ['in'])
+        self.is_terminated = True
 
 
 class DrawLineNode(Node):
     def __init__(self):
         super().__init__('draw_line.json', ['start', 'end', 'thick', 'color'])
+        self.is_terminated = True
 
 
 class DrawDiscNode(Node):
     def __init__(self):
         super().__init__('draw_disc.json', ['pos', 'radius', 'thick', 'color'])
+        self.is_terminated = True
 
 
 # =========== OTHER ===========
@@ -156,6 +159,21 @@ class ColorNode(Node):
     def __init__(self, color: str):
         color = color.replace('_', ' ').title()
         super().__init__('color.json', ['out'], {'color': color})
+        
+        
+class CountryNode(Node):
+    def __init__(self, country: str):
+        super().__init__('country.json', ['out'], {'value': country})
+
+
+class StringNode(Node):
+    def __init__(self, string: str):
+        super().__init__('string.json', ['out'], {'value': string})
+        
+        
+class StatNode(Node):
+    def __init__(self, value):
+        super().__init__('stat.json', ['out'], {'value': value})
 
 
 # =========== SLIME ===========
@@ -163,6 +181,7 @@ class ColorNode(Node):
 class SlimeControllerNode(Node):
     def __init__(self):
         super().__init__('slime_controller.json', ['move', 'jump'])
+        self.is_terminated = True
 
 
 class VolleyballGetBoolNode(Node):
@@ -186,3 +205,9 @@ class VolleyballGetVec3Node(Node):
                  '$opponent_position', '$opponent_velocity']
         n = names.index(name)
         super().__init__('volleyball_get_vec3.json', ['out'], {'name': n})
+
+
+class ConstructSlimeNode(Node):
+    def __init__(self):
+        super().__init__('slime_construct.json', ['name', 'country', 'speed', 'accel', 'jump', 'color'])
+        self.is_terminated = True

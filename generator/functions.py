@@ -1,4 +1,5 @@
 from builder.graph import Graph
+from generator.ast_nodes import *
 
 
 class BuiltInFunction:
@@ -34,6 +35,11 @@ class BuiltInRegister:
 
         flag = True
         for i in range(len(args)):
+            if func.args[i] == 'c_number':
+                if isinstance(args[i], Number):
+                    continue
+                else:
+                    flag = False
             if args[i].type != func.args[i]:
                 flag = False
         if not flag:
