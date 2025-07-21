@@ -1,5 +1,6 @@
 from builder.graph import Graph
 from generator.ast_nodes import *
+from types_table import TypesTable
 
 
 class BuiltInFunction:
@@ -41,7 +42,10 @@ class BuiltInRegister:
                 else:
                     flag = False
             if args[i].type != func.args[i]:
-                flag = False
+                if TypesTable.check(args[i].type, func.args[i]):
+                    TypesTable.transform(cls._graph, args[i].type, func.args[i], args[i])
+                else:
+                    flag = False
         if not flag:
             raise Exception(f'Wrong types of arguments: {name} needs {str(func.args)}')
         node.type = func.return_type

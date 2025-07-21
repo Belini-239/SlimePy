@@ -15,6 +15,8 @@ class Node:
         if ports is None:
             ports = []
 
+        self.args = args
+
         self.ports = {}
         for port in ports:
             self.ports[port] = gen_id()

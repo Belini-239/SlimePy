@@ -265,12 +265,8 @@ class Constructor:
                     ErrorHandler.error(str(e), node.token)
 
             elif isinstance(node, StringLiteral):
-                if node.value in countriesList:
-                    node.type = 'country'
-                    tmp = Optimizer.add_node(self.graph, ns.CountryNode(node.value), {})
-                else:
-                    node.type = 'str'
-                    tmp = Optimizer.add_node(self.graph, ns.StringNode(node.value), {})
+                node.type = 'str'
+                tmp = Optimizer.add_node(self.graph, ns.StringNode(node.value), {})
                 node.SID = tmp.ports['out']
 
             elif isinstance(node, ReservedIdentifier):
