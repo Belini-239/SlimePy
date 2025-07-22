@@ -169,6 +169,7 @@ class Parser:
         @self.pg.production('function_def : FUNCTION IDENTIFIER LPAREN params_list RPAREN block')
         @self.pg.production('function_def : FUNCTION IDENTIFIER LPAREN params_list RPAREN COLON type block')
         def function_def(p):
+            ErrorHandler.variables.add(p[1].value)
             if len(p) == 6:
                 return FunctionDefinition(p[1].value, p[3], 'none', p[5], p[1])
             return FunctionDefinition(p[1].value, p[3], p[6], p[7], p[1])
