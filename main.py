@@ -16,6 +16,7 @@ def check_code():
 
     lexer = Lexer().build()
     tokens = list(lexer.lex(code))
+
     parser = Parser().build()
 
     ast = parser.parse(iter(tokens))

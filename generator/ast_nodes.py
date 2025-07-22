@@ -187,6 +187,15 @@ class FunctionCall(Node):
         return f"FunctionCall(\n  name={self.name},\n  args={self.args})"
 
 
+class FunctionDefinition(Node):
+    def __init__(self, name, args, return_type, block, token):
+        self.name = name
+        self.args = args
+        self.block = block
+        self.return_type = return_type
+        super().__init__(token)
+
+
 class Block(Node):
     def __init__(self, statements, token):
         self.statements = statements

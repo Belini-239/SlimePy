@@ -69,6 +69,9 @@ class Lexer:
         # Colors
         self.lg.add('COLOR_TYPE', 'COLOR.')
 
+        # Function
+        self.lg.add('FUNCTION', 'def')
+
         # Global
         self.lg.add('GLOBAL', r'\bglobal\b')
 

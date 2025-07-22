@@ -33,7 +33,7 @@ class Parser:
             'LPAREN', 'RPAREN', 'LBRACE', 'RBRACE',
             'COLON', 'COMMA',
             # Globals
-            'GLOBAL',
+            'GLOBAL', 'FUNCTION',
         ]
 
         warnings.filterwarnings("ignore")
@@ -82,6 +82,7 @@ class Parser:
             return [p[0]] + p[1]
 
         @self.pg.production('global_statement : global_declaration')
+        @self.pg.production('global_statement : function_def')
         def global_statement(p):
             return p[0]
 
@@ -164,6 +165,23 @@ class Parser:
         def if_statement(p):
             false_block = p[6] if len(p) > 5 else None
             return If(p[2], p[4], p[0], false_block)
+
+        @self.pg.production('function_def : FUNCTION IDENTIFIER LPAREN params_list RPAREN block')
+        @self.pg.production('function_def : FUNCTION IDENTIFIER LPAREN params_list RPAREN COLON type block')
+        def function_def(p):
+            if len(p) == 6:
+                return FunctionDefinition(p[1].value, p[3], 'none', p[5], p[1])
+            return FunctionDefinition(p[1].value, p[3], p[6], p[7], p[1])
+
+        @self.pg.production('params_list : ')
+        @self.pg.production('params_list : IDENTIFIER COLON type')
+        @self.pg.production('params_list : IDENTIFIER COLON type COMMA params_list')
+        def params_list(p):
+            if len(p) == 0:
+                return []
+            if len(p) == 3:
+                return [(p[0].value, p[2])]
+            return [(p[0].value, p[2])] + p[4]
 
         @self.pg.production('expression : expression VEC_X')
         @self.pg.production('expression : expression VEC_Y')

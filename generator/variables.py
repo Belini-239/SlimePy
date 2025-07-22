@@ -28,6 +28,9 @@ class VarsManager:
             return None
         return self.vars_dict[name][-1]
 
+    def check_var(self, name):
+        return name in self.vars_dict
+
     def pop_suf(self, border):
         keys = self.vars_dict.keys()
         rem_keys = []
