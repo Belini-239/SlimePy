@@ -65,7 +65,6 @@ class BuiltInRegister:
 
     @classmethod
     def get_function(cls, name: str, args: list) -> Function:
-        print(cls._registry_custom.keys())
         if name not in cls._registry_custom:
             raise Exception(f'No such function: {name}')
         func = cls._registry_custom[name]

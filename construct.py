@@ -35,7 +35,6 @@ class Constructor:
                     global_in[name] = tmp.ports['in1']
                     self.global_vars.add_var(Variable(name, tmp.ports['out'], dec.var_type))
             elif isinstance(dec, FunctionDefinition):
-                print(dec.name, dec.args, dec.return_type)
                 BuiltInRegister.register_custom(dec.name, dec.args, dec.return_type, dec.block)
 
         self.construct(main_node, VarsManager())
