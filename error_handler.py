@@ -7,6 +7,7 @@ from generator.variables import VarsManager
 class ErrorHandler:
     is_building = False
     variables = set()
+    functions = set()
 
     @classmethod
     def set_building(cls, is_building):
@@ -19,6 +20,7 @@ class ErrorHandler:
         else:
             output = {
                 "variables": list(cls.variables),
+                "functions": list(cls.functions),
                 "errors": [
                     {
                         "range": {
@@ -37,6 +39,7 @@ class ErrorHandler:
     def no_error(cls):
         output = {
             "variables": list(cls.variables),
+            "functions": list(cls.functions),
             "errors": []
         }
         print(json.dumps(output))
