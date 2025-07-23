@@ -34,6 +34,7 @@ class Lexer:
         # Keywords
         self.lg.add('PRINT', r'\bprint\b')
         self.lg.add('IF', r'\bif\b')
+        self.lg.add('ELSE', r'\belse\b')
 
         # Comparison operators
         self.lg.add('EQ', r'==')

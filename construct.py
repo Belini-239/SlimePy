@@ -84,6 +84,21 @@ class Constructor:
                 or1 = Optimizer.add_node(self.graph, ns.CompareBoolsNode('or'), {'in1': and1.ports['out'], 'in2': and2.ports['out']})
                 return or1.ports['out']
 
+    def conditional_set_list(self, local_vars, condition, block):
+        stamp = self.get_vars_stamp(local_vars)
+        self.construct(block, local_vars)
+        stamp_ = self.get_vars_stamp(local_vars)
+
+        change_names = []
+        for k, v in stamp.items():
+            if v.sid != stamp_[k].sid:
+                change_names.append(k)
+
+        for name in change_names:
+            var = self.get_var(local_vars, name)
+            res_sid = self.conditional_set(stamp_[name].sid, stamp[name].sid, condition, var.type)
+            var.sid = res_sid
+
     def construct(self, node, local_vars: VarsManager):
         try:
             if isinstance(node, Block):
@@ -126,19 +141,11 @@ class Constructor:
                 if node.condition.type != "bool":
                     ErrorHandler.error("Condition should be boolean", node.token)
 
-                stamp = self.get_vars_stamp(local_vars)
-                self.construct(node.true_block, local_vars)
-                stamp_ = self.get_vars_stamp(local_vars)
+                self.conditional_set_list(local_vars, node.condition.SID, node.true_block)
 
-                change_names = []
-                for k, v in stamp.items():
-                    if v.sid != stamp_[k].sid:
-                        change_names.append(k)
-
-                for name in change_names:
-                    var = self.get_var(local_vars, name)
-                    res_sid = self.conditional_set(stamp_[name].sid, stamp[name].sid, node.condition.SID, var.type)
-                    var.sid = res_sid
+                if node.false_block:
+                    tmp = Optimizer.add_node(self.graph, ns.NotNode(), {'in': node.condition.SID})
+                    self.conditional_set_list(local_vars, tmp.ports['out'], node.false_block)
 
             elif isinstance(node, BinaryOp):
                 self.construct(node.left, local_vars)
